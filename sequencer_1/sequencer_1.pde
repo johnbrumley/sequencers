@@ -6,11 +6,11 @@ Env envelope;
 
 float attackTime, sustainTime, sustainLevel, releaseTime; // times are in seconds
 
-int lastTime;
-int millisPerStep;
-int currentStep = 0;
-
-int[] sequence;
+int[][] seq = {
+                {1,2,1,2,2,1,1,2},
+                {0,0,0,9},
+                {5,5,5,5,5}
+              };
 
 Sequencer s;
 
@@ -26,16 +26,13 @@ void setup(){
   sustainLevel = 1;
   releaseTime = 0.5;
   
-  lastTime = millis();
-  millisPerStep = 500;
-  
-  sequence = new int[8];
-  for (int i = 0; i < sequence.length; i++){
-    sequence[i] = floor(random(64));
-  }
-  
   s = Sequencer.getInstance();
-  s.addSequence(10);
+  
+  // add patterns to sequencer
+  s.addSequence(seq[0].length);
+  s.addSequence(seq[1].length);
+  
+  // start sequencer
   s.startSequencer();
   
   // listen to the sequencer
@@ -45,4 +42,16 @@ void setup(){
 
 void draw(){
 
+}
+
+// Class that uses the sequencer callback function
+class Step implements SequencerListener{
+  @Override
+  // steps[] returns the current index of each pattern
+  public void nextStep(int[] steps){
+    for(int i = 0; i < steps.length; i++){
+      println("pattern #:" + i + ": " + seq[i][steps[i]]);
+    }
+  }
+  
 }
