@@ -1,7 +1,9 @@
 import processing.sound.*;
-import de.bezier.guido.*;
 
+Slider slider;
 CheckBox[] boxes;
+CircleToggle[]toggles;
+
 int gridWidth;
 int gridHeight;
 int currentStep = 0;
@@ -13,11 +15,11 @@ int[][] patterns;
 SinOsc[] waves;
 Env env;
 
-// Times and levels for the ASR envelope
-float attackTime = 0.001;
+// Envelope Parameters
+float attackTime = 0.01;
 float sustainTime = 0.004;
-float sustainLevel = 0.3;
-float releaseTime = 0.2;
+float sustainLevel = 0.1;
+float releaseTime = 0.04;
 
 void setup ()
 {
@@ -28,7 +30,7 @@ void setup ()
     gridWidth = ((width-50)/25);
     gridHeight = ((height-50)/25);
     
-    // could store patterns here
+    // 2d array to store patterns
     patterns = new int[gridHeight][gridWidth];
     for(int i = 0; i < gridHeight; i++){
       for(int j = 0; j < gridWidth; j++){
@@ -36,22 +38,12 @@ void setup ()
       }
     }
     
-    // store checkboxes
-    boxes = new CheckBox[ gridWidth * gridHeight];
-    int currentBox = 0;
-    for ( int i = 0; i < height-50; i+= 25 ) {
-      for( int j = 0; j < width-50; j+= 25 ) {
-        boxes[currentBox] = new CheckBox(25+j, 25+i, 24, 24 );
-        currentBox++;
-      } 
-    }
-    
-    // create waves
+    // create a separate wave for each row
     waves = new SinOsc[gridHeight];
     for(int i = 0; i < gridHeight; i++){
       waves[i] = new SinOsc(this);
       waves[i].freq(i*80 + 100);
-      waves[i].amp(0.5);
+      waves[i].amp(0.1);
     }
     
     // Create the envelope 
@@ -64,21 +56,7 @@ void draw ()
 {
     background( 20 );
     
-    // check which boxes are checked
-    for (int i = 0; i < boxes.length; i++) {
-      if(i%gridWidth == currentStep){
-        boxes[i].setActive(true);
-      } else {
-        boxes[i].setActive(false);
-      }
-      
-      if(boxes[i].isChecked()){
-        patterns[floor(i/gridWidth)][i%gridWidth] = 1;
-      } else {
-        patterns[floor(i/gridWidth)][i%gridWidth] = 0;
-      }
-    }
-    
+    checkPatternBoxes();
     
     if(millis() - lastTime > tempo){
       
@@ -88,64 +66,60 @@ void draw ()
       }
       
       for(int i = 0; i < patterns.length; i++){
-        if(patterns[i][currentStep] == 1){
+        if(patterns[i][currentStep] == 1 && toggles[i].isChecked()){
           waves[i].play();
           env.play(waves[i], attackTime, sustainTime, sustainLevel, releaseTime);
         }
       }
       
-      
+      // update variables
+      tempo = floor(slider.value*1000) + 50;
       lastTime = millis();
     }
 }
 
-public class CheckBox
-{
-    boolean checked;
-    boolean active;
-    float x, y, width, height;
-    
-    CheckBox (float xx, float yy, float ww, float hh )
-    {
-        x = xx; y = yy; width = ww; height = hh;
-        Interactive.add( this );
+void initUI(){
+  // store checkboxes
+    boxes = new CheckBox[ gridWidth * gridHeight];
+    int currentBox = 0;
+    for ( int i = 0; i < height-50; i+= 25 ) {
+      for( int j = 0; j < width-50; j+= 25 ) {
+        boxes[currentBox] = new CheckBox(25+j, 25+i, 24, 24 );
+        currentBox++;
+      } 
     }
     
-    void mouseReleased ()
-    {
-        checked = !checked;
+    toggles = new CircleToggle [gridHeight];
+    for(int i = 0; i < toggles.length; i++){
+      toggles[i] = new CircleToggle(5, 30+i*25, 15, 15);
     }
     
-    void draw ()
-    {
-        noStroke();
-        fill( 120 );
-        rect( x, y, width, height );
-        
-        if ( active && !checked ) 
-        {
-          fill( #F4A8FC );
-          rect( x+2, y+2, width-4, height-4 );
-        }
-        
-        if ( checked && !active)
-        {
-            fill( #2EFFD7 );
-            rect( x+2, y+2, width-4, height-4 );
-        }
-        
-        if ( checked && active)
-        {
-            fill( #D0FF93 );
-            rect( x+2, y+2, width-4, height-4 );
-        }
+    // Slider
+    slider = new Slider(2, 2, width-4, 16 );
+}
+
+
+// updates patterns and GUI based on the state of the boxes/toggles
+void checkPatternBoxes(){
+  // check which boxes are checked
+  for (int i = 0; i < boxes.length; i++) {
+    if(i%gridWidth == currentStep){
+      boxes[i].setActive(true);
+    } else {
+      boxes[i].setActive(false);
     }
     
-    boolean isChecked(){
-      return checked;
+    if(boxes[i].isChecked()){
+      patterns[floor(i/gridWidth)][i%gridWidth] = 1;
+    } else {
+      patterns[floor(i/gridWidth)][i%gridWidth] = 0;
     }
     
-    void setActive(boolean value){
-      active = value;
+    // if muted set mute value
+    if(toggles[floor(i/gridWidth)].isChecked()){
+      boxes[i].setMute(false);
+    } else {
+      boxes[i].setMute(true);
     }
+  }
 }
