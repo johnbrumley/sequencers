@@ -30,6 +30,8 @@ void setup ()
     gridWidth = ((width-50)/25);
     gridHeight = ((height-50)/25);
     
+    initUI();
+    
     // 2d array to store patterns
     patterns = new int[gridHeight][gridWidth];
     for(int i = 0; i < gridHeight; i++){
