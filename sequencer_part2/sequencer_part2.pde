@@ -15,7 +15,7 @@ you can "mute" a pattern by not checking on it.
 */
 
 
-int[] treblePattern = {57,59,60,62,60,62};
+int[] treblePattern = {57,59,60,62,60,62}; // we're using MIDI values for pitch here (0-127, where one unit is a halftone)
 int[] bassPattern = {45,45,45,45,47,47,47,47};
 
 Sequencer sequencer;
