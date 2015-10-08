@@ -35,6 +35,27 @@ class Sequencer {
     patterns.add(new Pattern(_name, _p));
   }
   
+  void loadPatternsFromJSON(String fileName){
+    JSONObject json = loadJSONObject(fileName);
+    JSONArray values = json.getJSONArray("patterns");
+    
+    int[] p;
+    for (int i = 0; i < values.size(); i++) {
+      
+      JSONObject pattern = values.getJSONObject(i);
+      
+      String name = pattern.getString("name");
+      JSONArray patternValues = pattern.getJSONArray("pattern");
+      
+      p = new int[patternValues.size()];
+      
+      for(int j = 0; j < p.length; j++){
+        p[j] = patternValues.getInt(j);
+      }
+      this.addPattern(name, p); 
+    }
+  }
+  
   void setTempo(int _tempo){
     tempo = bpmToMillis(_tempo)/(minStepNoteValue/4);
   }
@@ -70,6 +91,14 @@ class Sequencer {
       }
     }
     return value;
+  }
+  
+  IntDict getAllStates(){
+    IntDict states = new IntDict();
+    for (Pattern p : patterns) {
+        states.set(p.name,p.getCurrentStep());
+      }
+    return states;
   }
   
   // utility for converting to milliseconds, since we're using that

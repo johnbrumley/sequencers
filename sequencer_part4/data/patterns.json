@@ -1,9 +1,7 @@
 { "patterns" : [
-		{"name":"0", "pattern":[0,1,2,3,4,5,6,7,8,9,10]},
-		{"name":"1", "pattern":[2,3,4,5,1,2,3,4]},
-		{"name":"2", "pattern":[1,1,1,1,2,2,2]},
-		{"name":"3", "pattern":[0,0,0,0,0,0,0,0,0,0,4]},
-		{"name":"4", "pattern":[5,6,5,6,0,5,6,5]},
-		{"name":"5", "pattern":[0,5,0,5,0,5,0,5]}
+		{"name":"sawMelody", "pattern":[35,37,37,35,35]},
+		{"name":"sawAmplitude", "pattern":[100,50,80]},
+		{"name":"sawPan", "pattern":[-100,100]},
+		{"name":"sawFilterFrequency", "pattern":[1000,50,300,600,400,150,80]}
 	]
 }
