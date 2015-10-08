@@ -5,18 +5,6 @@ import java.util.Map; // using a HashMap for this, A custom Pattern Class in lat
 
 Sequencer Class
 
-Keeps track of the pattern state and timing
-
-TODO:
-
-Implement some way of creating random variations
-
-Add different beat settings? maybe default to 16ths instead of quarters since
-that Is what I would expect from a sequencer
-
-Add some kind of helper for CC type values? maybe not
-
-
 */
 
 class Sequencer {
@@ -36,11 +24,36 @@ class Sequencer {
     patterns.add(new Pattern(_name, _p));
   }
   
+  void setPattern(String _name, int[] _p){
+    for(Pattern pat : patterns){
+      if(pat.name.equals(_name)){
+        pat.replacePattern(_p);
+      }
+    }
+    
+  }
+  
+  void setPatternStep(String _name, int index, int value){
+    for(Pattern pat : patterns){
+      if(pat.name.equals(_name)){
+        pat.setValueAtIndex(index, value);
+      }
+    }
+  }
+  
+  void revertPattern(String _name){
+    for(Pattern pat : patterns){
+      if(pat.name.equals(_name)){
+        pat.resetPatternToOriginal();
+      }
+    }
+  }
+  
   void loadPatternsFromJSON(String fileName){
     JSONObject json = loadJSONObject(fileName);
     JSONArray values = json.getJSONArray("patterns");
     
-    int[] p;
+    int[] pat;
     for (int i = 0; i < values.size(); i++) {
       
       JSONObject pattern = values.getJSONObject(i);
@@ -48,12 +61,12 @@ class Sequencer {
       String name = pattern.getString("name");
       JSONArray patternValues = pattern.getJSONArray("pattern");
       
-      p = new int[patternValues.size()];
+      pat = new int[patternValues.size()];
       
-      for(int j = 0; j < p.length; j++){
-        p[j] = patternValues.getInt(j);
+      for(int j = 0; j < pat.length; j++){
+        pat[j] = patternValues.getInt(j);
       }
-      this.addPattern(name, p); 
+      this.addPattern(name, pat); 
     }
   }
   
@@ -62,8 +75,8 @@ class Sequencer {
   }
   
   void moveToStep(int step){
-   for(Pattern p : patterns){
-     p.setStepValue(step);
+   for(Pattern pat : patterns){
+     pat.setStepValue(step);
    }
   }
   
@@ -73,8 +86,8 @@ class Sequencer {
     if(millis() - lastTime > tempo){
       nextStep = true;
       // increment the our current steps
-      for (Pattern p : patterns) {
-        p.next();
+      for (Pattern pat : patterns) {
+        pat.next();
       }
       
       lastTime = millis(); // record the time
@@ -86,9 +99,9 @@ class Sequencer {
   int getState(String name){
     int value = -1;
     // loop through patterns, select by name match
-    for(Pattern p : patterns){
-      if(p.name.equals(name)){
-        value = p.getCurrentStep();
+    for(Pattern pat : patterns){
+      if(pat.name.equals(name)){
+        value = pat.getCurrentStep();
       }
     }
     return value;
@@ -96,26 +109,26 @@ class Sequencer {
   
   IntDict getAllStates(){
     IntDict states = new IntDict();
-    for (Pattern p : patterns) {
-        states.set(p.name,p.getCurrentStep());
+    for (Pattern pat : patterns) {
+        states.set(pat.name,pat.getCurrentStep());
       }
     return states;
   }
   
   int[] getEntirePattern(String name){
     int[] patternNotFound = {-1};
-    for(Pattern p : patterns){
-      if(p.name.equals(name)){
-        return p.getPattern();
+    for(Pattern pat : patterns){
+      if(pat.name.equals(name)){
+        return pat.getPattern();
       }
     }
     return patternNotFound;
   }
   
   void mixPattern(String name, int amount){
-    for(Pattern p : patterns){
-      if(p.name.equals(name)){
-        p.swapValuesRelativeToStartingPattern(amount);
+    for(Pattern pat : patterns){
+      if(pat.name.equals(name)){
+        pat.swapValuesRelativeToStartingPattern(amount);
       }
     }
   }
@@ -129,8 +142,9 @@ class Sequencer {
   // Pattern Class, handles individual sequences and related logic
   class Pattern {
     String name;
-    int[] masterP;
-    int[] p;
+    IntList originalP;
+    IntList masterP;
+    IntList p;
     int currentStep;
     boolean loop;
     
@@ -138,8 +152,15 @@ class Sequencer {
        name = _name;
        currentStep = 0;
        loop = true;
-       p = _values;
-       masterP = _values;
+       
+       this.p = new IntList();
+       this.masterP = new IntList();
+       this.originalP = new IntList();
+       for(int i = 0; i < _values.length; i++){
+         this.p.append(_values[i]);
+         this.masterP.append(_values[i]);
+         this.originalP.append(_values[i]);
+       }
      }
      
      void reset(){
@@ -147,16 +168,25 @@ class Sequencer {
      }
      
      void setStepValue(int step){
-       if(step >= p.length){
+       if(step >= p.size()){
           step = 0;
         }
         currentStep = step;
      }
      
+     void setValueAtIndex(int index,int value){
+       if(index < masterP.size()){
+         masterP.set(index, value);
+       } else {
+         println("Index out of Range");
+       }
+       
+     }
+     
      void next(){
        currentStep++;
        if(loop){
-         if(currentStep >= p.length){
+         if(currentStep >= p.size()){
            reset();
          }
        }
@@ -164,49 +194,76 @@ class Sequencer {
      
      int getCurrentStep(){
        // make sure current step is within range, in case not looping
-       if(currentStep <= p.length){
-         return p[currentStep];
+       if(currentStep <= p.size()){
+         return p.get(currentStep);
        } else {
          return -1;
        }
      }
      
      int getLength(){
-       return p.length;
+       return p.size();
      }
      
      int[] getPattern(){
-       return p;
+       return p.array();
      }
      
      void resetPattern(){
-       p = masterP;
+       for(int i = 0; i < masterP.size(); i++){
+         p.set(i, masterP.get(i));
+       }
+     }
+     
+     void resetPatternToOriginal(){
+       for(int i = 0; i < originalP.size(); i++){
+         masterP.set(i, originalP.get(i));
+       }
+     }
+     
+     void replacePattern(int[] newPat){
+       originalP.clear();
+       masterP.clear();
+       p.clear();
+       
+       for(int i = 0; i < newPat.length; i++){
+         this.p.append(newPat[i]);
+         this.masterP.append(newPat[i]);
+         this.originalP.append(newPat[i]);
+       }
+       
      }
      
      int distanceFromMaster(int[] newArray){
        int distance = 0;
-       for(int i = 0; i < masterP.length; i++){
-         int stepDistance = abs(masterP[i] - newArray[i]);
-         distance += stepDistance;
+       for(int i = 0; i < masterP.size(); i++){
+         if(abs(masterP.get(i) - newArray[i]) > 0){
+           distance++;
+         }
        }
        return distance;
      }
      
-     void swapByIndices(int[] a, int i, int j){
-       int tempVal = a[i];
-       p[i] = p[j];
-       p[j] = tempVal;
+     void swapByIndices(int i, int j){
+       int tempVal = p.get(i);
+       p.set(i, p.get(j));
+       p.set(j, tempVal);
      }
      
      // algorithmically modifying the pattern
      void swapValuesRelativeToStartingPattern(int numberToSwap){
-       resetPattern();
-       while (distanceFromMaster(p) < numberToSwap) {
-         int firstIndex = floor(random(p.length));
-         int secondIndex = floor(random(p.length));
-         while(firstIndex == secondIndex) secondIndex = floor(random(p.length));
-         swapByIndices(p,firstIndex,secondIndex);
+       this.resetPattern();
+       for (int i = 0; i < numberToSwap; i++) {
+         int firstIndex = floor(random(p.size()));
+         int secondIndex = floor(random(p.size()));
+         
+         while(firstIndex == secondIndex) {
+           secondIndex = floor(random(p.size()));
+         }
+  
+         swapByIndices(firstIndex, secondIndex);
        }
+       
      }
   }
 }

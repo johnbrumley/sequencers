@@ -1,5 +1,6 @@
 import processing.sound.*;
 
+
 /*
 
 Loading in Patterns from a JSON file using the following format:
@@ -28,11 +29,12 @@ your project (look under Sketch->Add File...) before you try using this method.
 // our sequencer
 Sequencer sequencer;
 
+// we'll be controlling multiple aspects of a saw oscillator with multiple patterns
 SawOsc saw;
 LowPass lowPass;
+// use some variables to store different values related to our lowpass filter
 int newLowPassValue;
 int lowPassValue;
-Env env;
 
 void setup(){
   size(400,200);
@@ -41,15 +43,16 @@ void setup(){
   // load all of our Patterns from our data file to our Sequencer
   sequencer.loadPatternsFromJSON("patterns.json");
   
-  sequencer.setTempo(160);
-  
+  sequencer.setTempo(160); // 160 bpm
+  // initialize our oscillator
   saw = new SawOsc(this);
   saw.play();
   
+  // setup our lowpass filter and set starting points for the lowpass variables
   lowPass = new LowPass(this);
   lowPass.process(saw, 200);
   newLowPassValue = 500;
-  lowPassValue = 500;
+  lowPassValue = 10000;
 
 }
 
