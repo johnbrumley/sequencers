@@ -32,13 +32,15 @@ int[] pattern = {1,5,4,3,2,6,4,5};
 
 // the draw loop at 30 frames per second is too fast to hear each 
 // step as a discrete note, so we will slow things down to beats per minute.
-int tempo = 120;
+int tempo = 50;
 
 // Create a Sequencer Object to hold the pattern and tempo
 Sequencer seq;
 
 // Now we'll make an instrument to translate those values into sound
 SawOsc oscillator;
+
+Boolean firstLoop = true;
 
 void setup(){
   size(200,200);
@@ -51,8 +53,7 @@ void setup(){
   
   // set up our oscillator
   oscillator = new SawOsc(this);
-  // play the oscillator
-  oscillator.play();
+  
   
   background(0);
 }
@@ -66,6 +67,12 @@ void draw(){
     // map the value to an audible frequency
     int frequency = patternValue * 200;
     oscillator.freq(frequency);
+    
+    if(firstLoop){
+      // play the oscillator
+      oscillator.play();
+      firstLoop = false;
+    }
   }
 }
 
@@ -83,11 +90,15 @@ class Sequencer {
   float tempo; // tempo in milliseconds
   int lastTime; // keep track of time
   int currentStep; // keep track of which step we are on
+  boolean firstNote;
   
   // initial setup
   Sequencer(){
     pattern = new IntList();
     tempo = bpmToMillis(120); // default tempo is 120 bpm
+    
+    lastTime = millis();
+    firstNote = true;
   }
   
   // new pattern or replace old pattern
@@ -108,7 +119,7 @@ class Sequencer {
   // Tell us if we are on the next step of the sequence based on our tempo
   boolean checkState(){
     boolean nextStep = false;
-    if(millis() - lastTime > tempo){
+    if(millis() - lastTime > tempo && !firstNote){
       nextStep = true;
       // increment the current step
       currentStep++;
@@ -116,6 +127,10 @@ class Sequencer {
       if(currentStep >= pattern.size()){
         currentStep = 0;
       }
+      lastTime = millis(); // record the time
+    } else if(millis() - lastTime > tempo && firstNote){
+      nextStep = true;
+      firstNote = false;
       lastTime = millis(); // record the time
     }
     return nextStep;
