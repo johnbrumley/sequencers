@@ -3,6 +3,15 @@ import processing.sound.*;
 
 /*
 
+
+This example shows how you can use different patterns to control other values
+than pitch. Additionally it introduces how you can store your patterns in an 
+external .json file. 
+
+This example and later examples use a different Sequencer class which only takes
+patterns of integers, but has more methods for recalling and manipulating sequences.
+
+
 Loading in Patterns from a JSON file using the following format:
 
 {
@@ -82,7 +91,7 @@ void draw(){
     }
   }
   
-  // rather than jump to the new frequency for the filter, we'll slide there using lerp()
+  // rather than jump to the new filter frequency, we'll slide there using lerp()
   lowPassValue = floor(lerp(lowPassValue,newLowPassValue,0.01));
   lowPass.freq(lowPassValue);
   

@@ -81,7 +81,8 @@ void draw(){
 
 Sequencer Class
 
-Keeps track of the pattern state and timing
+Keeps track of the pattern state and timing, this is a simplified
+version of later Sequencer classes
 
 */
 

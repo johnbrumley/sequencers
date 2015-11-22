@@ -152,9 +152,9 @@ class Sequencer {
   // Pattern Class, handles individual sequences and related logic
   class Pattern {
     String name;
-    IntList originalP;
-    IntList masterP;
-    IntList p;
+    IntList originalP; // not used right now, intended to always hold the pattern at the object's creation
+    IntList masterP; // stored pattern for undoing swaps
+    IntList p; // the working pattern, what will be returned when queried
     int currentStep;
     boolean loop;
     
