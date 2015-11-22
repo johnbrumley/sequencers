@@ -24,7 +24,7 @@ int patternCounter = 0;
 
 void setup() {
   sequencer = new Sequencer();
-  sequencer.setTempo(150);
+  sequencer.setTempo(60);
   sequencer.newPattern("treble", treblePattern);
   sequencer.newPattern("bass", bassPattern);
   

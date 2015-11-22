@@ -4,7 +4,13 @@ import java.util.Map; // using a HashMap for this, A custom Pattern Class in lat
 
 Sequencer Class
 
-Keeps track of the pattern state and timing
+Keeps track of the pattern state and timing, 
+
+
+NOTE: 
+
+This version of the class is modified to take an Array List of 
+Note objects rather than integers.
 
 */
 
@@ -15,12 +21,17 @@ class Sequencer {
   float tempo; // tempo in milliseconds
   int lastTime; // keep track of time
   
+  boolean firstNote;
+  
   // initial setup
   Sequencer(){
     patterns = new HashMap<String, ArrayList>();
     currentSteps = new IntDict();
 
     tempo = bpmToMillis(120); // default tempo is 120 bpm
+    
+    lastTime = millis();
+    firstNote = true;
   }
   
   // new pattern or replace old pattern
@@ -61,7 +72,7 @@ class Sequencer {
   // Tell us if we are on the next step of the sequence based on our tempo
   boolean checkState(){
     boolean nextStep = false;
-    if(millis() - lastTime > tempo){
+    if(millis() - lastTime > tempo && !firstNote){
       nextStep = true;
       // increment the our current steps
       for (Map.Entry<String,ArrayList> e : patterns.entrySet()) {
@@ -76,6 +87,10 @@ class Sequencer {
         currentSteps.set(currentKey, currentStep);
       }
       
+      lastTime = millis(); // record the time
+    } else if(millis() - lastTime > tempo && firstNote){
+      nextStep = true;
+      firstNote = false;
       lastTime = millis(); // record the time
     }
     return nextStep;

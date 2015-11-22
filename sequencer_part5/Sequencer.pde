@@ -1,9 +1,11 @@
-import de.bezier.math.combinatorics.*; // combinatorics library for producing variations of patterns
-import java.util.Map; // using a HashMap for this, A custom Pattern Class in later ones
-
 /* 
 
 Sequencer Class
+
+NOTE: 
+
+This version of the Sequencer class adds a lot of methods to the private Pattern class
+to 
 
 */
 
@@ -15,9 +17,13 @@ class Sequencer {
   
   int minStepNoteValue = 16; // what do we want our min step size to be, here 16th notes
   
+  boolean firstNote;
+  
   // initial setup
   Sequencer(){
     tempo = bpmToMillis(120)/(minStepNoteValue/4); // default tempo is 120 bpm
+    lastTime = millis();
+    firstNote = true;
   }
   
   void addPattern(String _name, int[] _p){
@@ -83,7 +89,7 @@ class Sequencer {
   // Tell us if we are on the next step of the sequence based on our tempo
   boolean checkState(){
     boolean nextStep = false;
-    if(millis() - lastTime > tempo){
+    if(millis() - lastTime > tempo && !firstNote){
       nextStep = true;
       // increment the our current steps
       for (Pattern pat : patterns) {
@@ -91,6 +97,10 @@ class Sequencer {
       }
       
       lastTime = millis(); // record the time
+    } else if(millis() - lastTime > tempo && firstNote){
+      nextStep = true;
+      firstNote = false;
+      lastTime = millis();
     }
     return nextStep;
   }
